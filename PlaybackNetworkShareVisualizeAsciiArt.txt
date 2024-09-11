@@ -1,0 +1,19 @@
+Simple example: How to run two docker containers that will share a network connection for Ros.
+
+1. Create the local network from docker
+
+  docker network create localros
+  
+2. Start up your docker container, with the name set for easy reuse later
+
+  docker run -it --rm --net localros --name master --env ROS_HOSTNAME=master --env ROS_MASTER_URI=http://master:11311 middleway
+
+3. start up the other container, which should have access to the ros master effectively
+
+  docker run -it --rm --net localros --name test1 --env ROS_HOSTNAME=ros2ascii --env ROS_MASTER_URI=http://master:11311 ros2ascii bash  
+
+then, inside that container run
+
+  ./ros_entrypoint.sh 
+  rosrun ros2ascii radar2ascii
+  

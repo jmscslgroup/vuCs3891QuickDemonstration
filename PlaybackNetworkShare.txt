@@ -1,0 +1,57 @@
+Simple example: How to run two docker containers that will share a network connection for Ros.
+
+1. Create the local network from docker
+
+  docker network create localros
+  
+2. Start up your docker container, with the name set for easy reuse later
+
+  docker run -it --rm --net localros --name master rosblank roscore
+
+3. start up the other container, which should have access to the ros master effectively
+
+  docker run -it --rm --net localros --name test1 --env ROS_HOSTNAME=test1 --env ROS_MASTER_URI=http://master:11311 rosblank /bin/bash
+
+Note: this used the below Dockerfile, creating an image called "rosblank"
+
+```
+FROM ros:noetic-robot
+
+# change the default shell command
+SHELL ["/bin/bash", "-c"] 
+
+
+#ENV TERM linux
+ENV TERM xterm-256color
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update 
+RUN apt-get install -y wget
+#RUN apt-get install -y curl nano iputils-ping net-tools git cmake build-essential
+
+#RUN apt-get update
+#RUN apt-get install -y ros-noetic-tf2 ros-noetic-tf ros-noetic-geodesy python3-catkin-pkg
+#
+#
+#RUN mkdir -p home/catkin_ws/src
+#RUN cd home/catkin_ws/src/ && git clone https://github.com/jmscslgroup/ros2ascii
+#RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; cd home/catkin_ws; catkin_make'
+#
+##RUN "source /home/catkin_ws/devel/setup.bash"
+#RUN echo "source /home/catkin_ws/devel/setup.bash" >> /root/.bashrc
+
+# this gets run in this image
+RUN source ros_entrypoint.sh
+
+# now add this to all future calls
+RUN echo "source /ros_entrypoint.sh" >> /etc/bash.bashrc
+
+CMD ["/bin/bash"]
+# RUN export ROS_MASTER_URI="http://$(hostname):11311"
+# RUN export ROS_HOSTNAME="$(hostname)"
+
+#ADD start.sh /
+#RUN chmod u+x start.sh
+#CMD ["/start.sh"]
+
+```
